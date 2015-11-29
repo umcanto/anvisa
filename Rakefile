@@ -1,20 +1,25 @@
 #!/usr/bin/env ruby
 require 'pry'
 
-Drug = Struct.new(:name, :lab, :formula, :dose, :ve) do
+Drug = Struct.new(:name, :lab, :formula, :dose, :via) do
   def to_json(*)
     to_h.to_json
   end
 end
 
-unless File.exist?('filea.pdf')
-  `wget 'http://portal.anvisa.gov.br/wps/wcm/connect/95e50000436f3838ba7bfac9763a17cb/LISTA++A+DE+MED+REFER%C3%8ANCIA+17-03-2014.pdf?MOD=AJPERES' -O filea.pdf`
-  `wget 'http://portal.anvisa.gov.br/wps/wcm/connect/16e5db00436f38bdba84fac9763a17cb/LISTA++B+DE+MED+REFER%C3%8ANCIA+17-03-2014.pdf?MOD=AJPERES' -O fileb.pdf`
+task :default do
+  puts 'ANVISA Convert!'
+  puts
+  puts 'Try `unify` or `convert`'
 end
-
 
 desc 'Converts pdf to csv'
 task :convert do
+  unless File.exist?('filea.pdf')
+    `wget 'http://portal.anvisa.gov.br/wps/wcm/connect/95e50000436f3838ba7bfac9763a17cb/LISTA++A+DE+MED+REFER%C3%8ANCIA+17-03-2014.pdf?MOD=AJPERES' -O filea.pdf`
+    `wget 'http://portal.anvisa.gov.br/wps/wcm/connect/16e5db00436f38bdba84fac9763a17cb/LISTA++B+DE+MED+REFER%C3%8ANCIA+17-03-2014.pdf?MOD=AJPERES' -O fileb.pdf`
+  end
+
   puts 'Converting file a...'
   `jruby -S tabula filea.pdf --pages 1-28 --spreadsheet -o a.csv`
 
@@ -34,8 +39,8 @@ task :unify do
   # name, lab: lab, formula: formula, dose: dose,
   a[6..-1].each do |c|
     start = c[2].empty? ? 3 : 2
-    name, dose, ve = c[start..-1]
-    DRUGS << Drug.new(name, c[1], c[0], dose, ve)
+    name, dose, via = c[start..-1]
+    DRUGS << Drug.new(name, c[1], c[0], dose, via)
   end
 
   b[1..-1].each do |c|
