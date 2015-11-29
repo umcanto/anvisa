@@ -37,6 +37,7 @@ task :unify do
   a = CSV.read('a.csv').to_a
   b = CSV.read('b.csv').to_a
   # name, lab: lab, formula: formula, dose: dose,
+  # there's a crazy empty row only on first page!
   a[6..-1].each do |c|
     start = c[2].empty? ? 3 : 2
     name, dose, via = c[start..-1]
@@ -44,7 +45,9 @@ task :unify do
   end
 
   b[1..-1].each do |c|
-    DRUGS << Drug.new(c[2], c[1], c[0], c[3], c[4])
+    start = c[2].empty? ? 3 : 2
+    name, dose, via = c[start..-1]
+    DRUGS << Drug.new(name, c[1], c[0], dose, via)
   end
 
   File.open('drugs.json', 'w+') do |f|
